@@ -1,0 +1,193 @@
+import random
+random.seed(0)
+import numpy as np
+np.random.seed(0)
+
+import tensorflow as tf
+tf.random.set_seed(0)
+import os
+import json
+from zipfile import ZipFile
+from PIL import Image
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras  import layers,models
+import os
+os.listdir('/content')
+import os
+os.listdir('/content')
+import os
+
+# Path to the dataset
+dataset_path = "/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3"
+
+# List files and folders in the dataset directory
+print("Contents of the dataset directory:")
+print(os.listdir(dataset_path))
+print(len(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/segmented")))
+print(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/segmented")[:5])
+
+print(len(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/color")))
+print(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/color")[:5])
+
+print(len(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/grayscale")))
+print(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/grayscale")[:5])
+print(len(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/segmented")))
+print(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/segmented")[:5])
+
+print(len(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/color")))
+print(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/color")[:5])
+
+print(len(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/grayscale")))
+print(os.listdir("/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/grayscale")[:5])
+
+
+
+base_dir="/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/color"
+image_path="/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/color/Apple___Apple_scab/00075aa8-d81a-4184-8541-b692b78d398a___FREC_Scab 3335.JPG"
+img=mpimg.imread(image_path)
+print(img.shape)
+plt.imshow(img)
+plt.axis('off')
+plt.show()
+
+base_dir="/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/color"
+image_path="/root/.cache/kagglehub/datasets/abdallahalidev/plantvillage-dataset/versions/3/plantvillage dataset/color/Apple___Apple_scab/00075aa8-d81a-4184-8541-b692b78d398a___FREC_Scab 3335.JPG"
+img=mpimg.imread(image_path)
+print(img.shape)
+plt.imshow(img)
+plt.axis('off')
+plt.show()
+#Image Data Generators
+data_gen=ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2
+)
+#training genertor
+train_generator = data_gen.flow_from_directory(
+    base_dir,
+    target_size=(img_size, img_size),
+    batch_size=batch_size,
+    subset='training',     
+    class_mode='categorical'  
+)
+#validation generator
+validation_generator = data_gen.flow_from_directory(
+    base_dir,
+    target_size=(img_size, img_size),
+    batch_size=batch_size,
+    subset='validation',
+    class_mode='categorical'
+)
+from tensorflow.keras import models, layers
+
+# Define the model
+model = models.Sequential()
+
+# Input layer
+model.add(layers.Input(shape=(img_size, img_size, 3)))
+
+# First convolutional block
+model.add(layers.Conv2D(32, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+
+# Second convolutional block
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+
+# Fully connected layers
+model.add(layers.Flatten())
+model.add(layers.Dense(256, activation='relu'))
+model.add(layers.Dense(train_generator.num_classes, activation='softmax'))
+
+# Display model summary
+model.summary()
+
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+
+history = model.fit(
+    train_generator,
+    steps_per_epoch=train_generator.samples // batch_size,
+    epochs=5,
+    validation_data=validation_generator,
+    validation_steps=validation_generator.samples // batch_size,
+)
+# Evaluate the model
+print("Evaluating Model....")
+val_loss, val_acc = model.evaluate(validation_generator, steps=validation_generator.samples // validation_generator.batch_size)
+
+# Print the results
+print(f"Validation Accuracy: {val_acc * 100:.2f}%")
+
+# Evaluate the model
+print("Evaluating Model....")
+val_loss, val_acc = model.evaluate(validation_generator, steps=validation_generator.samples // validation_generator.batch_size)
+
+# Print the results
+print(f"Validation Accuracy: {val_acc * 100:.2f}%")
+
+
+def load_and_preprocess_image(image_path,target_size={224,224}):
+    img = Image.open(image_path)
+    img = img.resize(target_size)
+    img_array=np.array(img)
+    img_array=np.expand_dims(img_array,axis=0)
+    img_array=img_array.astype('float32')/255.
+    return img_array
+def predict_image_class(model,image_path,class_indices):
+    preprocessed_img=load_and_preprocess_image(image_path)
+    predictions=model.predict(preprocessed_img)
+    predicted_class_index=np.argmax(predictions,axis=1)[0]
+    predicted_class_name=class_indices[predicted_class_index]
+    return predicted_class_name
+
+class_indices={v:k for k,v in train_generator.class_indices.items()}
+class_indices
+
+json.dump(class_indices,open('class_indices.json','w'))
+
+from google.colab import files
+
+# Download the saved class_indices.json file
+files.download('class_indices.json')
+
+
+def load_and_preprocess_image(image_path, target_size=(224, 224)):
+    img = Image.open(image_path)
+    img = img.resize(target_size)
+    img_array = np.array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array = img_array.astype('float32') / 255.
+    return img_array
+
+def predict_image_class(model, image_path, class_indices):
+    preprocessed_img = load_and_preprocess_image(image_path)
+    predictions = model.predict(preprocessed_img)
+    predicted_class_index = np.argmax(predictions, axis=1)[0]
+    predicted_class_name = class_indices[predicted_class_index]
+    return predicted_class_name
+
+# Assuming the image path is correct and the model and class_indices are set up properly
+image_path = "/content/00075aa8-d81a-4184-8541-b692b78d398a___FREC_Scab 3335.JPG"
+
+# Predict the class for the image
+predicted_class = predict_image_class(model, image_path, class_indices)  # Removed img_size from here
+
+# Print the predicted class
+print(f"The predicted class for the image is: {predicted_class}")
+
+
+model.save('plant_disease_prediction_model.h5')
+
+from google.colab import files
+
+# Download the saved class_indices.json file
+files.download('plant_disease_prediction_model.h5')
+
+
